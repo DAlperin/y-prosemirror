@@ -30,9 +30,10 @@ const rxValidColor = /^#[0-9a-fA-F]{6}$/
 /**
  * @param {any} state
  * @param {Awareness} awareness
+ * @param {string|undefined} selfID
  * @return {any} DecorationSet
  */
-export const createDecorations = (state, awareness, createCursor) => {
+export const createDecorations = (state, awareness, createCursor, selfID) => {
   const ystate = ySyncPluginKey.getState(state)
   const y = ystate.doc
   const decorations = []
@@ -43,6 +44,14 @@ export const createDecorations = (state, awareness, createCursor) => {
   awareness.getStates().forEach((aw, clientId) => {
     if (clientId === y.clientID) {
       return
+    }
+    const meta = aw.meta || {}
+    if (meta.length > 0) {
+      for (const item of meta) {
+        if (item.selfID === selfID) {
+          return
+        }
+      }
     }
     if (aw.cursor != null) {
       const user = aw.user || {}
@@ -81,19 +90,20 @@ export const createDecorations = (state, awareness, createCursor) => {
  * @param {function(any):HTMLElement} [opts.cursorBuilder]
  * @param {function(any):any} [opts.getSelection]
  * @param {string} [opts.cursorStateField] By default all editor bindings use the awareness 'cursor' field to propagate cursor information.
+ * @param {number?} [opts.selfID]
  * @return {any}
  */
-export const yCursorPlugin = (awareness, { cursorBuilder = defaultCursorBuilder, getSelection = state => state.selection } = {}, cursorStateField = 'cursor') => new Plugin({
+export const yCursorPlugin = (awareness, { cursorBuilder = defaultCursorBuilder, getSelection = state => state.selection } = {}, cursorStateField = 'cursor', selfID = null) => new Plugin({
   key: yCursorPluginKey,
   state: {
     init (_, state) {
-      return createDecorations(state, awareness, cursorBuilder)
+      return createDecorations(state, awareness, cursorBuilder, selfID)
     },
     apply (tr, prevState, oldState, newState) {
       const ystate = ySyncPluginKey.getState(newState)
       const yCursorState = tr.getMeta(yCursorPluginKey)
       if ((ystate && ystate.isChangeOrigin) || (yCursorState && yCursorState.awarenessUpdated)) {
-        return createDecorations(newState, awareness, cursorBuilder)
+        return createDecorations(newState, awareness, cursorBuilder, selfID)
       }
       return prevState.map(tr.mapping, tr.doc)
     }
@@ -112,6 +122,10 @@ export const yCursorPlugin = (awareness, { cursorBuilder = defaultCursorBuilder,
     }
     const updateCursorInfo = () => {
       const ystate = ySyncPluginKey.getState(view.state)
+      //This is a hack to fix the race that happens when a subdoc is created
+      if (ystate.binding === null) {
+        return
+      }
       // @note We make implicit checks when checking for the cursor property
       const current = awareness.getLocalState() || {}
       if (view.hasFocus() && ystate.binding !== null) {
@@ -124,10 +138,12 @@ export const yCursorPlugin = (awareness, { cursorBuilder = defaultCursorBuilder,
          * @type {Y.RelativePosition}
          */
         const head = absolutePositionToRelativePosition(selection.head, ystate.type, ystate.binding.mapping)
-        if (current.cursor == null || !Y.compareRelativePositions(Y.createRelativePositionFromJSON(current.cursor.anchor), anchor) || !Y.compareRelativePositions(Y.createRelativePositionFromJSON(current.cursor.head), head)) {
-          awareness.setLocalStateField(cursorStateField, {
-            anchor, head
-          })
+        if (head.type !== null) {
+          if (current.cursor == null || !Y.compareRelativePositions(Y.createRelativePositionFromJSON(current.cursor.anchor), anchor) || !Y.compareRelativePositions(Y.createRelativePositionFromJSON(current.cursor.head), head)) {
+            awareness.setLocalStateField(cursorStateField, {
+              anchor, head
+            })
+          }
         }
       } else if (current.cursor != null && relativePositionToAbsolutePosition(ystate.doc, ystate.type, Y.createRelativePositionFromJSON(current.cursor.anchor), ystate.binding.mapping) !== null) {
         // delete cursor information if current cursor information is owned by this editor binding
