@@ -90,7 +90,7 @@ export const createDecorations = (state, awareness, createCursor, selfID) => {
  * @param {function(any):HTMLElement} [opts.cursorBuilder]
  * @param {function(any):any} [opts.getSelection]
  * @param {string} [opts.cursorStateField] By default all editor bindings use the awareness 'cursor' field to propagate cursor information.
- * @param {number?} [opts.selfID]
+ * @param {string?} [opts.selfID]
  * @return {any}
  */
 export const yCursorPlugin = (awareness, { cursorBuilder = defaultCursorBuilder, getSelection = state => state.selection } = {}, cursorStateField = 'cursor', selfID = null) => new Plugin({
@@ -122,7 +122,7 @@ export const yCursorPlugin = (awareness, { cursorBuilder = defaultCursorBuilder,
     }
     const updateCursorInfo = () => {
       const ystate = ySyncPluginKey.getState(view.state)
-      //This is a hack to fix the race that happens when a subdoc is created
+      // This is a hack to fix the race that happens when a subdoc is created
       if (ystate.binding === null) {
         return
       }
