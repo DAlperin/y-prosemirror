@@ -123,9 +123,9 @@ export const yCursorPlugin = (awareness, { cursorBuilder = defaultCursorBuilder,
     const updateCursorInfo = () => {
       const ystate = ySyncPluginKey.getState(view.state)
       // This is a hack to fix the race that happens when a subdoc is created
-      if (ystate.binding === null) {
-        return
-      }
+      // if (ystate.binding === null) {
+      //   return
+      // }
       // @note We make implicit checks when checking for the cursor property
       const current = awareness.getLocalState() || {}
       if (view.hasFocus() && ystate.binding !== null) {
