@@ -132,7 +132,6 @@ export const ySyncPlugin = (yXmlFragment, { colors = defaultColors, colorMapping
       // Make sure this is called in a separate context
       setTimeout(() => {
         binding._forceRerender()
-        if (binding.prosemirrorView.docView) return
         view.dispatch(view.state.tr.setMeta(ySyncPluginKey, { binding }))
       }, 0)
       return {
@@ -280,7 +279,6 @@ export class ProsemirrorBinding {
       const fragmentContent = this.type.toArray().map(t => createNodeFromYElement(/** @type {Y.XmlElement} */ (t), this.prosemirrorView.state.schema, this.mapping)).filter(n => n !== null)
       // @ts-ignore
       const tr = this.prosemirrorView.state.tr.replace(0, this.prosemirrorView.state.doc.content.size, new PModel.Slice(new PModel.Fragment(fragmentContent), 0, 0))
-      if (!this.prosemirrorView.docView) return
       this.prosemirrorView.dispatch(tr.setMeta(ySyncPluginKey, { isChangeOrigin: true }))
     })
   }
