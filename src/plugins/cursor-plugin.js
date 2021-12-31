@@ -54,6 +54,7 @@ export const createDecorations = (state, awareness, createCursor, selfID) => {
       }
     }
     if (aw.cursor != null) {
+      if (aw.cursor.guid !== ystate.binding.doc.guid) return
       const user = aw.user || {}
       if (user.color == null) {
         user.color = '#ffa500'
@@ -129,6 +130,7 @@ export const yCursorPlugin = (awareness, { cursorBuilder = defaultCursorBuilder,
       // @note We make implicit checks when checking for the cursor property
       const current = awareness.getLocalState() || {}
       if (view.hasFocus() && ystate.binding !== null) {
+        const guid = ystate.binding.doc.guid
         const selection = getSelection(view.state)
         /**
          * @type {Y.RelativePosition}
@@ -141,7 +143,7 @@ export const yCursorPlugin = (awareness, { cursorBuilder = defaultCursorBuilder,
         if (head.type !== null) {
           if (current.cursor == null || !Y.compareRelativePositions(Y.createRelativePositionFromJSON(current.cursor.anchor), anchor) || !Y.compareRelativePositions(Y.createRelativePositionFromJSON(current.cursor.head), head)) {
             awareness.setLocalStateField(cursorStateField, {
-              anchor, head
+              anchor, head, guid
             })
           }
         }
