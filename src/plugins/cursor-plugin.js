@@ -31,9 +31,10 @@ const rxValidColor = /^#[0-9a-fA-F]{6}$/
  * @param {any} state
  * @param {Awareness} awareness
  * @param {string|undefined} selfID
+ * @param {string} stateField
  * @return {any} DecorationSet
  */
-export const createDecorations = (state, awareness, createCursor, selfID) => {
+export const createDecorations = (state, awareness, createCursor, selfID, stateField) => {
   const ystate = ySyncPluginKey.getState(state)
   const y = ystate.doc
   const decorations = []
@@ -53,8 +54,8 @@ export const createDecorations = (state, awareness, createCursor, selfID) => {
         }
       }
     }
-    if (aw.cursor != null) {
-      if (aw.cursor.guid !== ystate.binding.doc.guid) return
+    if (aw[stateField] != null) {
+      if (aw[stateField].guid !== ystate.binding.doc.guid) return
       const user = aw.user || {}
       if (user.color == null) {
         user.color = '#ffa500'
@@ -65,8 +66,8 @@ export const createDecorations = (state, awareness, createCursor, selfID) => {
       if (user.name == null) {
         user.name = `User: ${clientId}`
       }
-      let anchor = relativePositionToAbsolutePosition(y, ystate.type, Y.createRelativePositionFromJSON(aw.cursor.anchor), ystate.binding.mapping)
-      let head = relativePositionToAbsolutePosition(y, ystate.type, Y.createRelativePositionFromJSON(aw.cursor.head), ystate.binding.mapping)
+      let anchor = relativePositionToAbsolutePosition(y, ystate.type, Y.createRelativePositionFromJSON(aw[stateField].anchor), ystate.binding.mapping)
+      let head = relativePositionToAbsolutePosition(y, ystate.type, Y.createRelativePositionFromJSON(aw[stateField].head), ystate.binding.mapping)
       if (anchor !== null && head !== null) {
         const maxsize = math.max(state.doc.content.size - 1, 0)
         anchor = math.min(anchor, maxsize)
@@ -98,13 +99,13 @@ export const yCursorPlugin = (awareness, { cursorBuilder = defaultCursorBuilder,
   key: yCursorPluginKey,
   state: {
     init (_, state) {
-      return createDecorations(state, awareness, cursorBuilder, selfID)
+      return createDecorations(state, awareness, cursorBuilder, selfID, cursorStateField)
     },
     apply (tr, prevState, oldState, newState) {
       const ystate = ySyncPluginKey.getState(newState)
       const yCursorState = tr.getMeta(yCursorPluginKey)
       if ((ystate && ystate.isChangeOrigin) || (yCursorState && yCursorState.awarenessUpdated)) {
-        return createDecorations(newState, awareness, cursorBuilder, selfID)
+        return createDecorations(newState, awareness, cursorBuilder, selfID, cursorStateField)
       }
       return prevState.map(tr.mapping, tr.doc)
     }
