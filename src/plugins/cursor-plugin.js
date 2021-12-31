@@ -143,13 +143,13 @@ export const yCursorPlugin = (awareness, { cursorBuilder = defaultCursorBuilder,
          */
         const head = absolutePositionToRelativePosition(selection.head, ystate.type, ystate.binding.mapping)
         if (head.type !== null) {
-          if (current.cursor == null || !Y.compareRelativePositions(Y.createRelativePositionFromJSON(current.cursor.anchor), anchor) || !Y.compareRelativePositions(Y.createRelativePositionFromJSON(current.cursor.head), head)) {
+          if (current[cursorStateField] == null || !Y.compareRelativePositions(Y.createRelativePositionFromJSON(current[cursorStateField].anchor), anchor) || !Y.compareRelativePositions(Y.createRelativePositionFromJSON(current[cursorStateField].head), head)) {
             awareness.setLocalStateField(cursorStateField, {
               anchor, head, guid
             })
           }
         }
-      } else if (current.cursor != null && relativePositionToAbsolutePosition(ystate.doc, ystate.type, Y.createRelativePositionFromJSON(current.cursor.anchor), ystate.binding.mapping) !== null) {
+      } else if (current[cursorStateField] != null && relativePositionToAbsolutePosition(ystate.doc, ystate.type, Y.createRelativePositionFromJSON(current[cursorStateField].anchor), ystate.binding.mapping) !== null) {
         // delete cursor information if current cursor information is owned by this editor binding
         awareness.setLocalStateField(cursorStateField, null)
       }
