@@ -131,6 +131,8 @@ export const yCursorPlugin = (awareness, { cursorBuilder = defaultCursorBuilder,
       const current = awareness.getLocalState() || {}
       if (view.hasFocus() && ystate.binding !== null) {
         const guid = ystate.binding.doc.guid
+        if (current.cursor.guid !== guid) return
+
         const selection = getSelection(view.state)
         /**
          * @type {Y.RelativePosition}
